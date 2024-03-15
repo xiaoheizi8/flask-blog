@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    在线博客平台.修改密码
+{% endblock %}
+
+{% block css %}
+
+{% endblock %}
+
+{% block content %}
+<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">
+<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>
+    <div class="register">
+        <h1>修改密码</h1>
+        <p class="tip">
+            {% for item in get_flashed_messages() %}
+            {{ item }}
+            {% endfor %}
+        </p>
+        <form class="layui-form" action="/updatePwd" method="get">
+            <div class="layui-form-item">
+                <label class="layui-form-label">原密码</label>
+                <div class="layui-input-block">
+                    <input type="password" name="lodPwd" value="{{loadPwd}}" required  lay-verify="required" placeholder="请输入原密码" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">新密码</label>
+                <div class="layui-input-block">
+                    <input type="password" name="newPwd1" value="{{newPwd1}}" required lay-verify="required" placeholder="请输入新密码" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">确认新密码</label>
+                <div class="layui-input-block">
+                    <input type="password" name="newPwd2" value="{{newPwd2}}" required lay-verify="required" placeholder="请再次输入新密码" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="formDemo" formmethod="post">立即提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        layui.use('form', function(){
+            var form = layui.form;
+            form.on('submit(formDemo)', function(data){
+            });
+        });
+    </script>
+<style>
+    .register{
+    width: 440px;
+    padding: 20px;
+    margin: 20vh auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: -2px -2px 25px #fff;
+}
+.tip{
+    font-size:14px;
+    color: red;
+    text-align: center;
+    margin: 10px;
+    margin-top: -10px;
+}
+.layui-form-item {
+    padding-right: 60px;
+    margin-bottom: 30px;
+}
+h1{
+    position: relative;
+    text-align: center;
+    top: -40px;
+}
+</style>
+{% endblock %}
+
+{% block updatepwd_class %}
+    layui-this
+{% endblock %}

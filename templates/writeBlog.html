@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">
+<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>
+
+<div class="layui-container">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md8">
+            <form action="/blog/writeBlog" class="layui-form" method="post">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">文章类型</label>
+                    <div class="layui-input-block">
+                        <select name="type_id" lay-verify="required">
+                            {% for type in types %}
+                            <option value="{{ type.id }}">{{ type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item" id="t">
+                    <label class="layui-form-label">标题</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" required  lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text" id="c">
+                    <label class="layui-form-label">内容</label>
+                    <div class="layui-input-block">
+                        <textarea name="content" placeholder="请输入内容" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="formDemo">提交</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+layui.use('form', function(){
+  var form = layui.form;
+
+  // 监听提交
+  form.on('submit(formDemo)', function(data){
+    // return false; // 阻止表单跳转。如果需要表单跳转，去掉这段即可。
+
+  });
+});
+</script>
+
+{% endblock %}

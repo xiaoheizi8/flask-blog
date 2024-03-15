@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- 引入Layui的CSS和JS -->
+<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">
+<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>
+
+<div class="layui-container">
+    <h1>我的博客列表</h1>
+    <!-- 使用Layui栅格系统 -->
+    <div class="layui-row">
+        {% for blog in blogs %}
+        <div class="layui-col-md6">
+            <div class="blog">
+                <h2>标题:{{ blog.title }}</h2>
+
+                <p>内容:{{ blog.text }}</p>
+                <p>{{ blog.create_time }}</p>
+                <a href="/edit_blogs/{{blog.id}}" class="layui-btn">Edit</a>
+<!--                <button type="button" class="layui-btn layui-btn-sm layui-btn-normal">-->
+<!--                    <a href="/delete_blogs/{{blog.id}}" class="layui-icon layui-icon-delete"></a> 删除</button>-->
+                <a href="/delete_blogs/{{blog.id}}" class="layui-btn" style="color: dodgerblue">删除</a>
+            </div>
+        </div>
+        {% if loop.index % 2 == 0 or loop.last %}
+        </div>
+        <div class="layui-row">
+        {% endif %}
+        {% endfor %}
+    </div>
+
+</div>
+
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-sm12 layui-col-md12 text-center">
+        {% if page_no > 1 %}
+            <a href="/blog/myblogs/{{ id }}/{{ page_no - 1 }}" class="layui-btn layui-btn-primary">上一页</a>
+        {% endif %}
+        {% if page_no < total_page %}
+            <a href="/blog/myblogs/{{ id }}/{{ page_no + 1 }}" class="layui-btn layui-btn-primary">下一页</a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+  /* 设置全局字体样式 */
+body {
+    font-family: 'Arial', sans-serif; /* 使用Arial字体，如果不可用则使用无衬线字体 */
+    font-size: 16px; /* 设置字体大小为16像素 */
+    line-height: 1.5; /* 设置行高为字体大小的1.5倍 */
+    color: #333; /* 设置字体颜色为深灰色 */
+}
+
+/* 针对标题的特殊样式 */
+h1, h2, h3 {
+    font-family: 'Georgia', serif; /* 使用Georgia字体，如果不可用则使用衬线字体 */
+    color: #222; /* 设置标题颜色为深黑色 */
+    font-weight: bold; /* 设置字体粗细为加粗 */
+    /*font-*/
+    margin-bottom: 15px; /* 设置标题下方的外边距 */
+}
+
+/* 针对博客条目的样式 */
+.blog h2 {
+    font-size: 20px; /* 设置博客条目标题的字体大小为20像素 */
+}
+
+.blog p {
+    font-size: 14px; /* 设置博客条目正文的字体大小为14像素 */
+    margin-bottom: 10px; /* 设置段落下方的外边距 */
+}
+
+/* 针对链接的样式 */
+a {
+    color: #007BFF; /* 设置链接颜色为蓝色 */
+    text-decoration: none; /* 移除链接的下划线 */
+    transition: color 0.3s ease; /* 添加颜色变化的过渡效果 */
+}
+
+a:hover {
+    color: #0056b3; /* 鼠标悬停时改变链接颜色为深蓝色 */
+    text-decoration: underline; /* 鼠标悬停时添加下划线 */
+}
+
+/* 其他自定义样式 */
+.custom-class {
+    /* 在这里添加您自定义的样式规则 */
+}
+</style>
+
+{% endblock %}

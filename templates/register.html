@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+<!--<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">-->
+<!--<link href="/layui/layui/css/layui.css" rel="stylesheet">-->
+  <link rel="stylesheet" type="text/css" href="https://www.layuicdn.com/layui-v2.8.0/css/layui.css" />
+<!--<script src="/layui/layui/layui.js"></script>-->
+</head>
+<body>
+<style>
+.demo-reg-container{width: 320px; margin: 21px auto 0;}
+.demo-reg-other .layui-icon{position: relative; display: inline-block; margin: 0 2px; top: 2px; font-size: 26px;}
+</style>
+<form class="layui-form">
+  <div class="demo-reg-container">
+    <div class="layui-form-item">
+      <div class="layui-input-wrap">
+        <div class="layui-input-prefix">
+          <i class="layui-icon layui-icon-username"></i>
+        </div>
+        <input type="text" name="name" value="" lay-verify="required" placeholder="昵称" autocomplete="off" class="layui-input" lay-affix="clear">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <div class="layui-input-wrap">
+        <div class="layui-input-prefix">
+          <i class="layui-icon layui-icon-username"></i>
+        </div>
+        <input type="text" name="username" value="" lay-verify="required" placeholder="用户名" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <div class="layui-input-wrap">
+        <div class="layui-input-prefix">
+          <i class="layui-icon layui-icon-password"></i>
+        </div>
+        <input type="password" name="password" value="" lay-verify="required" placeholder="密码" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="demo-reg">注册</button>
+    </div>
+  </div>
+</form>
+
+<!-- 请勿在项目正式环境中引用该 layui.js 地址 -->
+<script src="https://www.layuicdn.com/layui-v2.8.0/layui.js"></script>
+<script>
+layui.use(['form', 'layer'], function(){
+  var form = layui.form;
+  var layer = layui.layer;
+
+  // 提交事件
+  form.on('submit(demo-reg)', function(data){
+    var field = data.field; // 获取表单字段值
+
+    // 验证用户名和密码是否已填写
+    if(!field.username || !field.password || !field.name){
+      layer.msg('用户名、密码和昵称不能为空');
+      return false;
+    }
+
+    // 发送 AJAX 请求到后端进行注册
+    $.ajax({
+      url: '/register', // 替换为您的后端注册接口地址
+      type: 'POST',
+      data: {
+        username: field.username, // 用户名
+        password: field.password, // 密码（注意：实际应用中应加密传输）
+        name: field.name // 昵称
+      },
+      dataType: 'json',
+      success: function(response){
+        // 请求成功时的处理
+        if(response.success){
+          layer.msg('注册成功');
+          window.location.href = 'login';
+          // 可以在这里执行其他操作，如跳转到其他页面等
+        } else {
+          layer.msg('注册失败：' + response.message);
+        }
+      },
+      error: function(xhr, status, error){
+        // 请求失败时的处理
+        layer.msg('注册请求失败：' + error);
+      }
+    });
+
+    // 阻止表单默认提交行为
+    return false;
+  });
+
+});
+
+
+</script>
+
+</body>
+{% endblock %}

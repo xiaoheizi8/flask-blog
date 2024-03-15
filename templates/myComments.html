@@ -1,0 +1,48 @@
+{% extends 'base.html' %}  
+  
+{% block title %}  
+    在线博客平台 - 我的评论  
+{% endblock %}  
+  
+{% block css %}  
+<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">  
+{% endblock %}  
+  
+{% block content %}  
+<div class="layui-container">  
+    <div class="layui-row">  
+        <div class="layui-col-md12">  
+            <div class="layui-card">  
+                <div class="layui-card-header">我的评论</div>  
+                <div class="layui-card-body">  
+                    <ul class="layui-clear">  
+                        {% for comment in commentList %}  
+                        <li class="layui-form-item">  
+                            <div class="layui-input-block">  
+                                <a class="layui-form-label" href="#">{{ comment.text }}</a>  
+                                <p>  
+                                    博客：<a href="#">{{ username }}</a> &nbsp;&nbsp;&nbsp;&nbsp;评论时间：{{ comment.create_time }}  
+                                    <span class="operation">  
+                                        <a href="/deleteCom/{{ comment.id }}" class="layui-btn layui-btn-xs" style="color: #fff; background-color: #5FB878;">删除</a>  
+                                    </span>  
+                                </p>  
+                            </div>  
+                        </li>  
+                        {% endfor %}  
+                    </ul>  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+</div>  
+  
+<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>  
+<script>  
+layui.use(['layer', 'form'], function(){  
+  var layer = layui.layer  
+  ,form = layui.form;  
+    
+  // 你可以在这里添加其他的LayUI组件的初始化代码  
+});  
+</script>  
+{% endblock %}

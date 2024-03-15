@@ -1,0 +1,95 @@
+{% extends 'bootstrap/base.html' %}
+{% block title%}
+Flask Blog
+{% endblock %}
+<!--<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">-->
+<!--<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>-->
+{% block navbar %}
+ <div class="container">
+        <nav class="navbar navbar-inverse" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="/">Flask博客</a>
+                </div>
+
+                <div class="collapse navbar-collapse navbar-ex1-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="/">网站首页</a>
+                        </li>
+                    </ul>
+
+                    {% if username %}
+                        <ul class="nav navbar-nav">
+                            <li><a
+                                    href="/blog/writeBlog">写博客</a>
+                            </li>
+                        </ul>
+
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                                    data-toggle="dropdown">博客管理<b class="caret"></b>
+                            </a>
+                                <ul class="dropdown-menu">
+                                    <li><a
+                                            href="/blog/myblogs/1"><i
+                                            class="glyphicon glyphicon-cog"></i> 我的博客</a>
+                                    </li>
+                                    <li class="divider"></li>
+
+                                    <li><a
+                                            href="/blog/myComments/1"><i class="glyphicon glyphicon-cog"></i> 评论管理</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    {% endif %}
+
+                    {% if not username %}
+
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href="/login" target="_blank">登录</a>
+                            </li>
+                            <li><a href="/register" target="_blank">注册</a>
+                            </li>
+                        </ul>
+                    {% else %}
+                        <div class="pull-right">
+                            <ul class="nav pull-right">
+                                <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                                        data-toggle="dropdown">欢迎，{{ username }} <b
+                                        class="caret"></b>
+                                </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a
+                                                href="/updatePwd"><i
+                                                class="glyphicon glyphicon-cog"></i> 修改密码</a>
+                                        </li>
+
+                                        <li class="divider"></li>
+                                        <li><a
+                                                href="/about"><i
+                                                class="glyphicon glyphicon-cog"></i> 关于博主</a>
+                                        </li>
+
+                                        <li class="divider"></li>
+                                        <li><a href="/logout"><i
+                                                class="glyphicon glyphicon-off"></i> 登出</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </nav>
+
+    </div>
+{% endblock %}
+
+{% block content%}
+Flask Blog
+{% endblock %}
