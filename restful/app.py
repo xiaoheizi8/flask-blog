@@ -1,213 +1,243 @@
-from flask import Flask,request,url_for,redirect,session,jsonify
+from flask import Flask, request, jsonify, session, redirect, url_for, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from werkzeug.security import generate_password_hash, check_password_hash
-import time,math
 from flask_cors import CORS
-from flask_bootstrap import Bootstrap
-app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/blog_cap'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=True
+import time
+from functools import wraps
+
+app = Flask(__name__)
 CORS(app)
-ctx=app.app_context()
+ctx = app.app_context()
 ctx.push()
-app.secret_key="flaskProject4"
-bcrypt=Bcrypt()
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/blog_cap'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.secret_key = "flaskProject4"
+bcrypt = Bcrypt()
 
-db=SQLAlchemy(app)
+db = SQLAlchemy(app)
 
-#用户模型
+# 用户模型
 class User(db.Model):
-    id=db.Column(db.Integer,primary_key=True)
-    username=db.Column(db.String(80),unique=True)
-    password=db.Column(db.String(80),nullable=True)
-    name=db.Column(db.String(64))
- #博客类型
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True)
+    password = db.Column(db.String(80), nullable=True)
+    name = db.Column(db.String(64))
+
+    def password_hash(self, password):
+        self.password = generate_password_hash(password)
+
+# 博客类型
 class Type(db.Model):
-    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(80))
-#博客文章类型
 
+# 博客文章类型
 class Blog(db.Model):
-    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
-    title=db.Column(db.String(128))
-    text=db.Column(db.TEXT)
-    create_time=db.Column(db.String(64))
- #关联关系映射
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(128))
+    text = db.Column(db.TEXT)
+    create_time = db.Column(db.String(64))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    type_id = db.Column(db.Integer, db.ForeignKey('type.id'))
 
-    user_id=db.Column(db.Integer,db.ForeignKey('user.id'))
-    user=db.relationship('User',backref='user')
-    type_id=db.Column(db.Integer,db.ForeignKey('type.id'))
-    type=db.relationship('Type',backref='type')
-
-#博客评论类型
+# 博客评论类型
 class Comment(db.Model):
-    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
-    text=db.Column(db.String(256))#评论内容
-    create_time=db.Column(db.String(64))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    text = db.Column(db.String(256))
+    create_time = db.Column(db.String(64))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    blog_id = db.Column(db.Integer, db.ForeignKey('blog.id'))
 
-    user_id=db.Column(db.Integer,db.ForeignKey('user.id'))
-    user=db.relationship('User',backref='user1')
-    blog_id=db.Column(db.Integer,db.ForeignKey('blog.id'))
-    blog=db.relationship('Blog',backref='blog')
+# 登录限制装饰器
+def login_limit(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if session.get('username'):
+            return func(*args, **kwargs)
+        else:
+            return jsonify({'error': 'Unauthorized access'}), 401
+    return wrapper
 
-@app.route("/",methods=['POST','GET'])
+# 首页路由，重定向到文章列表
+@app.route("/", methods=['GET'])
 def index():
-    return jsonify({'message': 'Welcome to the blog_cap API'})
-@app.route("/list/<int:page_no>")
+    return redirect('/list/1')
+
+# 文章列表路由
+@app.route("/list/<int:page_no>", methods=['GET'])
 def show_blog_by_page(page_no=1):
-    page_no=int(page_no)
-    total_count=Blog.query.count()
-    if total_count%5==0 and total_count!=0:
-        total_page=int(total_count/5)
-    else:
-        total_page=int(total_count/5)+1
-    blogs=Blog.query.order_by(Blog.create_time.desc()).limit(5).offset((page_no-1)*5).all()
+    page_no = int(page_no)
+    # 查询文章总数
+    total_count = Blog.query.count()
+    # 计算总页数
+    total_page = total_count // 5 + (1 if total_count % 5 != 0 else 0)
+    # 分页查询文章
+    blogs = Blog.query.order_by(Blog.create_time.desc()).limit(5).offset((page_no - 1) * 5).all()
+    # 构造返回数据
     blog_list = []
     for blog in blogs:
-        blog_data = {
+        blog_list.append({
             'id': blog.id,
             'title': blog.title,
             'text': blog.text,
+            'create_time': blog.create_time,
             'user_id': blog.user_id,
-            'type_id': blog.type_id,
-            'create_time': blog.create_time
-        }
-        blog_list.append(blog_data)
-    return jsonify({'total_page': total_page, 'page_no': page_no, 'blogs': blog_list})
+            'type_id': blog.type_id
+        })
+    return jsonify({'blogs': blog_list, 'total_page': total_page, 'current_page': page_no})
 
-
-@app.route("/blog/myblogs/<int:page_no>", methods=['GET','POST'])
+# 我的文章列表路由
+@app.route("/blog/myblogs/<int:page_no>", methods=['GET'])
+@login_limit
 def myblogs(page_no=1):
-    if 'username' not in session:
-        return jsonify({'message': 'Please log in'})
-
     username = session['username']
     user = User.query.filter_by(username=username).first()
+    # 查询当前用户的文章总数
     total_count = Blog.query.filter_by(user_id=user.id).count()
-
-    if total_count % 5 == 0 and total_count != 0:
-        total_page = int(total_count / 5)
-    else:
-        total_page = int(total_count / 5) + 1
-
+    # 计算总页数
+    total_page = total_count // 5 + (1 if total_count % 5 != 0 else 0)
+    # 分页查询用户的文章
     blogs = Blog.query.filter_by(user_id=user.id).order_by(Blog.create_time.desc()).limit(5).offset((page_no - 1) * 5).all()
-
+    # 构造返回数据
     blog_list = []
     for blog in blogs:
-        blog_data = {
+        blog_list.append({
             'id': blog.id,
             'title': blog.title,
             'text': blog.text,
+            'create_time': blog.create_time,
             'user_id': blog.user_id,
-            'type_id': blog.type_id,
-            'create_time': blog.create_time
-        }
-        blog_list.append(blog_data)
+            'type_id': blog.type_id
+        })
+    return jsonify({'blogs': blog_list, 'total_page': total_page, 'current_page': page_no})
 
-    return jsonify({'total_page': total_page, 'page_no': page_no, 'blogs': blog_list})
-@app.route("/blog/myComments/<int:page_no>",methods=['GET','POST'])
+# 我的评论列表路由
+@app.route("/blog/myComments/<int:page_no>", methods=['GET'])
+@login_limit
 def myComments(page_no=1):
     username = session.get('username')
     user = User.query.filter_by(username=username).first()
     if user is None:
-        return jsonify({'message': 'User not found or not logged in'})
+        return jsonify({'error': 'User not found'}), 404
 
-    commentList = Comment.query.filter(Comment.user_id == user.id).order_by(Comment.create_time.desc()).all()
-
+    # 查询当前用户的评论总数
+    total_count = Comment.query.filter_by(user_id=user.id).count()
+    # 计算总页数
+    total_page = total_count // 5 + (1 if total_count % 5 != 0 else 0)
+    # 分页查询用户的评论
+    comments = Comment.query.filter_by(user_id=user.id).order_by(Comment.create_time.desc()).limit(5).offset((page_no - 1) * 5).all()
+    # 构造返回数据
     comment_list = []
-    for comment in commentList:
-        comment_data = {
+    for comment in comments:
+        comment_list.append({
             'id': comment.id,
             'text': comment.text,
             'create_time': comment.create_time,
             'user_id': comment.user_id,
             'blog_id': comment.blog_id
-        }
-        comment_list.append(comment_data)
+        })
+    return jsonify({'comments': comment_list, 'total_page': total_page, 'current_page': page_no})
 
-    return jsonify({'comments': comment_list})
-@app.route('/deleteCom/<id>', methods=['GET','POST'])
+# 删除评论路由
+@app.route('/deleteCom/<int:id>', methods=['DELETE'])
+@login_limit
 def deleteCom(id):
-    comentList = Comment.query.filter(Comment.id == id).first()
-    db.session.delete(comentList)
+    comment = Comment.query.get(id)
+    if not comment:
+        return jsonify({'error': 'Comment not found'}), 404
+    db.session.delete(comment)
     db.session.commit()
+    return jsonify({'message': 'Comment deleted successfully'})
 
-    return jsonify({})
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    if request.method == "GET":
-        return jsonify('msg',"非法请求")
+# 编辑文章路由
+@app.route("/blog/edit_blogs/<int:id>", methods=['PUT'])
+@login_limit
+def edit_blogs(id):
+    blog = Blog.query.get(id)
+    if not blog:
+        return jsonify({'error': 'Blog not found'}), 404
 
-    elif request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        # 直接比较明文密码，这是非常不安全的做法！
-        user = User.query.filter_by(username=username, password=password).first()
+    data = request.get_json()
+    if 'title' in data:
+        blog.title = data['title']
+    if 'text' in data:
+        blog.text = data['text']
+    db.session.commit()
+    return jsonify({'message': 'Blog updated successfully'})
 
-        if user:
-            # 登录成功
-            session['username'] = user.username
-            # 返回JSON响应给前端
-            return jsonify({'status': 'success', 'message': 'Login successful'})
-        else:
-            # 登录失败
-            # 返回JSON响应给前端
-            return jsonify({'status': 'failure', 'message': 'Invalid username or password'}), 401
-@app.route('/register', methods=['GET', 'POST'])
+# 删除文章路由
+@app.route("/blog/delete_blogs/<int:id>", methods=['DELETE'])
+@login_limit
+def delete_blogs(id):
+    blog = Blog.query.get(id)
+    if not blog:
+        return jsonify({'error': 'Blog not found'}), 404
+
+    db.session.delete(blog)
+    db.session.commit()
+    return jsonify({'message': 'Blog deleted successfully'})
+
+# 注册路由
+@app.route('/register', methods=['POST'])
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        name = request.form['name']
-        # 检查用户名是否已存在
-        existing_user_by_username = User.query.filter_by(username=username).first()
-        if existing_user_by_username:
-            return jsonify({'success': False, 'message': '用户名已存在'})
-            # 检查昵称是否已存在
-        existing_user_by_name = User.query.filter_by(name=name).first()
-        if existing_user_by_name:
-            return jsonify({'success': False, 'message': '昵称已存在'})
-            # 创建新用户并保存到数据库
-        new_user = User(username=username, password=password, name=name)
-        db.session.add(new_user)
-        try:
-            db.session.commit()
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    name = data.get('name')
 
-            return jsonify({'success': True})  # 注册成功
-        except Exception as e:
-            db.session.rollback()  # 如果出现错误，回滚数据库操作
-            return jsonify({'success': False, 'message': str(e)})  # 返回错误信息
+    # 检查用户名和昵称是否已存在
+    existing_user_by_username = User.query.filter_by(username=username).first()
+    if existing_user_by_username:
+        return jsonify({'error': 'Username already exists'}), 400
 
-    # return jsonify({'success': True, 'message': '成功'})
-@app.route("/logout")
+    existing_user_by_name = User.query.filter_by(name=name).first()
+    if existing_user_by_name:
+        return jsonify({'error': 'Name already exists'}), 400
+
+    # 创建新用户并保存到数据库
+    new_user = User(username=username, password=password, name=name)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({'message': 'User registered successfully'})
+
+# 登录路由
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    # 查询用户
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):
+        session['username'] = user.username
+        return jsonify({'message': 'Login successful'})
+    else:
+        return jsonify({'error': 'Invalid username or password'}), 401
+# 登出路由
+@app.route("/logout", methods=['GET'])
 def logout():
-    session.pop('username',None)
-    return redirect("/")
-@app.route('/updatePwd', methods=['GET', 'POST'])
-def updatePwd():
-    if request.method == 'GET':
-        return jsonify({"success":False,'message':'非法请求'})
-    elif request.method == 'POST':
-        username = session.get("username")
-        if not username:
-            return jsonify({'message': '用户未登录，请先登录'})
+    session.pop('username', None)
+    return jsonify({'message': 'Logged out successfully'})
 
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            return jsonify({'message': '用户不存在'})
+# 修改密码路由
+@app.route('/updatePwd', methods=['PUT'])
+@login_limit
+def update():
+    username = session.get("username")
+    user = User.query.filter_by(username=username).first()
 
-        old_password = request.form.get('old_password')
-        new_password = request.form.get('new_password')
+    data = request.get_json()
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
 
-        if not old_password or not new_password:
-            return jsonify({'message': '请输入旧密码和新密码'})
-
-        if not check_password_hash(user.password, old_password):
-            return jsonify({'message': '旧密码错误'})
-
+    if check_password_hash(user.password, old_password):
         user.password = generate_password_hash(new_password)
         db.session.commit()
-        return jsonify({'message': '密码修改成功'})
+        return jsonify({'message': 'Password updated successfully'})
+    else:
+        return jsonify({'error': 'Incorrect old password'}), 400
+
 if __name__ == "__main__":
-    app.run(debug=True,use_reloader=True)
+    app.run(debug=True)
