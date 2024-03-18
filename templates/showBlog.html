@@ -1,56 +1,127 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}  
+{% block content %}  
+<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">  
+<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>  
+<style>  
+    /* 这里可以添加自定义样式 */  
+    .layui-btn {  
+        margin-right: 10px;  
+    }  
+</style>  
+<div class="container">  
+    <div class="row">  
+        <div class="layui-card">  
+            <div class="layui-card-header">{{ blog.title }}</div>  
+            <div class="layui-card-body">  
+                <p>作者：{{ blog.user.username }} &nbsp;&nbsp;&nbsp;&nbsp; 发布时间：{{ blog.create_time }}</p>  
+                <p>所属类别：{{ blog.type.name }}</p>  
+                <p>  
+                    {{ blog.text }}  
+                </p>  
+            </div>  
+        </div>  
+    </div>  
+    <div class="row">  
+        <div class="layui-card">  
+            <div class="layui-card-header">评论</div>  
+            <div class="layui-card-body">  
+                <form action="/blog/comment" class="layui-form" method="post">  
+                    <input type="hidden" name="blog_id" value="{{ blog.id }}">  
+                    <div class="layui-form-item">  
+                        <label class="layui-form-label">评论内容</label>  
+                        <div class="layui-input-block">  
+                            <textarea name="text" placeholder="请输入评论内容" class="layui-textarea"></textarea>  
+                        </div>  
+                    </div>  
+                    <div class="layui-form-item">  
+                        <div class="layui-input-block">  
+                            <button class="layui-btn" lay-submit lay-filter="formDemo">提交评论</button>  
+                        </div>  
+                    </div>  
+                </form>  
+            </div>  
+        </div>  
+    </div>  
+    <div class="row">  
+        <div class="layui-card">  
+            <div class="layui-card-header">评论列表</div>  
+            <div class="layui-card-body">  
+                <ul class="list-unstyled">  
+                    {% for comment in comments %}  
+                    <li>  
+                        <p>评论内容：{{ comment.text }}</p>  
+                        <p>评论人：{{ comment.user.username }} &nbsp;&nbsp;&nbsp;&nbsp;评论时间：{{ comment.create_time }}</p>  
+                    </li>  
+                    <hr>  
+                    {% endfor %}  
+                </ul>  
+            </div>  
+        </div>  
+    </div>  
+    <div class="row">  
+        <div class="layui-card">  
+            <div class="layui-card-body">  
+                <!-- 分页条 -->  
+                <div class="text-center">  
+                    {% if page_no > 1 %}  
+                    <a class="layui-btn layui-btn-xs" href="/blog/showBlog/{{ blog.id }}/{{ page_no-1 }}">上一页</a>  
+                    {% endif %}  
+                    {% if page_no < total_page %}  
+                    <a class="layui-btn layui-btn-xs" href="/blog/showBlog/{{ blog.id }}/{{ page_no+1 }}">下一页</a>  
+                    {% endif %}  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+</div>  
+  <style>
+      .layui-btn {
+        margin-right: 10px;
+    }
 
-{% block title %}
-    在线博客平台.修改密码
-{% endblock %}
+    .container {
+        margin-top: 20px;
+    }
 
-{% block css %}
+    .layui-card {
+        margin-bottom: 20px;
+        display: flex;
+    }
 
-{% endblock %}
+    .layui-card-header {
+        background-color: #f2f2f2;
+        border-bottom: 1px solid #e6e6e6;
+        font-size: 18px;
+        font-weight: bold;
+    }
 
-{% block content %}
-    <div class="register">
-        <h1>修改密码</h1>
-        <p class="tip">
-            {% for item in get_flashed_messages() %}
-            {{ item }}
-            {% endfor %}
-        </p>
-        <form class="layui-form" action="/updatePwd" method="post">
-            <div class="layui-form-item">
-                <label class="layui-form-label">原密码</label>
-                <div class="layui-input-block">
-                    <input type="password" name="lodPwd" required  lay-verify="required" placeholder="请输入原密码" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">新密码</label>
-                <div class="layui-input-block">
-                    <input type="password" name="newPwd1" required lay-verify="required" placeholder="请输入新密码" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">确认新密码</label>
-                <div class="layui-input-block">
-                    <input type="password" name="newPwd2" required lay-verify="required" placeholder="请再次输入新密码" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <div class="layui-input-block">
-                    <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
-                </div>
-            </div>
-        </form>
-    </div>
-    <script>
-        layui.use('form', function(){
-            var form = layui.form;
-            form.on('submit(formDemo)', function(data){
-            });
-        });
-    </script>
-{% endblock %}
+    .layui-card-body {
+        padding: 20px;
+    }
 
-{% block updatepwd_class %}
-    layui-this
+    .comment-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .comment-item {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #e6e6e6;
+        padding-bottom: 10px;
+    }
+
+
+    .comment-text {
+        margin-bottom: 5px;
+    }
+
+    .pagination {
+        margin-top: 20px;
+    }
+</style>
+
+<script>  
+// layui.use(['form'], function(){
+//   var form = layui.form;
+</script>
 {% endblock %}

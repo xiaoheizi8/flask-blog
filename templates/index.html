@@ -4,11 +4,11 @@
     <table class="table table-striped">
         {% for blog in blogs %}
         <tr>
-            <td><a href="/showBlog/{{blog.id}}">{{blog.user.username}}</a></td>
+            <td><a href="/blog/showBlog/{{blog.id}}/1">{{blog.user.username}}</a></td>
             <td>{{ blog.user.username }}</td>
             <td>{{ blog.title }}</td>
             <td>{{ blog.create_time }}</td>
-            <td><a href="/showBlog/{{blog.id}}/1">查看</a></td>
+            <td><a href="/blog/showBlog/{{blog.id}}/1">查看</a></td>
         </tr>
         {% endfor %}
     </table>

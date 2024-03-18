@@ -250,7 +250,7 @@ def write_blog():
         return render_template("blogSuccess.html", title=title, id=blog.id)
 
 
-@app.route("/showBlog/<id>/<page_no>", methods=['GET', 'POST'])
+@app.route("/blog/showBlog/<id>/<page_no>", methods=['GET', 'POST'])
 def show_blog(id, page_no=1):
     id = int(id)
     page_no = int(page_no)
@@ -267,7 +267,7 @@ def show_blog(id, page_no=1):
     return render_template("showBlog.html", blog=blog, total_page=total_page, comments=comments, page_no=page_no)
 
 
-@app.route("/comment", methods=['GET', 'POST'])
+@app.route("/blog/comment", methods=['GET', 'POST'])
 def comment():
     blog_id = request.form['blog_id']
     text = request.form['text']
@@ -283,7 +283,7 @@ def comment():
     comment = Comment(blog_id=blog_id, text=text, create_time=create_time, user_id=user.id)
     db.session.add(comment)
     db.session.commit()
-    return redirect('showBlog/' + blog_id + "/" + str(1))
+    return redirect('/blog/showBlog/' + blog_id + "/" + str(1))
 
 
 @app.route('/updatePwd', methods=['GET','POST'])
