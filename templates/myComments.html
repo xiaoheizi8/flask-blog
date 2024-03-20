@@ -1,48 +1,171 @@
-{% extends 'base.html' %}  
-  
+{% extends 'base.html' %}
 {% block title %}  
     在线博客平台 - 我的评论  
-{% endblock %}  
-  
-{% block css %}  
-<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">  
-{% endblock %}  
-  
-{% block content %}  
-<div class="layui-container">  
-    <div class="layui-row">  
-        <div class="layui-col-md12">  
-            <div class="layui-card">  
-                <div class="layui-card-header">我的评论</div>  
-                <div class="layui-card-body">  
-                    <ul class="layui-clear">  
-                        {% for comment in commentList %}  
-                        <li class="layui-form-item">  
-                            <div class="layui-input-block">  
-                                <a class="layui-form-label" href="#">{{ comment.text }}</a>  
-                                <p>  
-                                    博客：<a href="#">{{ username }}</a> &nbsp;&nbsp;&nbsp;&nbsp;评论时间：{{ comment.create_time }}  
-                                    <span class="operation">  
-                                        <a href="/deleteCom/{{ comment.id }}" class="layui-btn layui-btn-xs" style="color: #fff; background-color: #5FB878;">删除</a>  
-                                    </span>  
-                                </p>  
-                            </div>  
-                        </li>  
-                        {% endfor %}  
-                    </ul>  
-                </div>  
-            </div>  
-        </div>  
-    </div>  
-</div>  
-  
-<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>  
-<script>  
-layui.use(['layer', 'form'], function(){  
-  var layer = layui.layer  
-  ,form = layui.form;  
-    
-  // 你可以在这里添加其他的LayUI组件的初始化代码  
-});  
-</script>  
+{% endblock %}
+{% block css %}
+<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="layui-container">
+    <div class="layui-row">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">我的评论</div>
+                <div class="layui-card-body">
+                    <ul class="layui-clear">
+                        {% for comment in commentList %}
+                        <li class="layui-form-item">
+                            <div class="layui-input-block">
+                                <a class="layui-form-label" href="#">{{ comment.text }}</a>
+                                <p>
+                                    博客：<a href="#">{{ username }}</a> &nbsp;&nbsp;&nbsp;&nbsp;评论时间：{{ comment.create_time }}
+                                    <span class="operation">
+            <a href="/deleteCom/{{ comment.id }}?page_no={{ page_no }}" class="layui-btn" style="color: #fff; background-color: deepskyblue;">删除</a>
+                                    </span>
+                                </p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_no > 1 %}
+                                <li class="page-item"><a class="page-link" href="{{ url_for('myComments', page_no=page_no-1) }}">Previous</a></li>
+                            {% endif %}
+                            {% for page in range(1, total_page+1) %}
+                                <li class="page-item {% if page == page_no %}active{% endif %}"><a class="page-link" href="{{ url_for('myComments', page_no=page) }}">{{ page }}</a></li>
+                            {% endfor %}
+                            {% if page_no < total_page %}
+                                <li class="page-item"><a class="page-link" href="{{ url_for('myComments', page_no=page_no+1) }}">Next</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    <!-- End Pagination -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+/* 自定义样式 */
+
+/* 容器布局 */
+.layui-container {
+    padding: 20px;
+    background-color: #f5f5f5; /* 容器背景色 */
+}
+
+/* 卡片样式 */
+.layui-card {
+    box-shadow: 0 1px 6px rgba(0, 0, 0, .12);
+    border-radius: 5px;
+    overflow: hidden; /* 隐藏溢出内容 */
+    margin-bottom: 20px;
+}
+
+/* 卡片头部样式 */
+.layui-card-header {
+    padding: 10px 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #e6e6e6;
+    font-size: 16px;
+    color: #333;
+}
+
+/* 卡片主体样式 */
+.layui-card-body {
+    padding: 15px;
+    background-color: #fff;
+}
+
+/* 评论列表样式 */
+.layui-clear {
+    list-style: none; /* 移除列表样式 */
+    padding: 0;
+}
+
+.layui-clear li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0; /* 列表项底部边框 */
+}
+
+.layui-clear li:last-child {
+    border-bottom: none; /* 移除最后一个列表项的底部边框 */
+}
+
+/* 评论内容样式 */
+.layui-form-label {
+    display: inline-block;
+    margin-right: 10px; /* 与操作区域间隔 */
+}
+
+/* 用户名和评论时间样式 */
+.username, .comment-time {
+    font-size: 12px;
+    color: #666;
+}
+
+/* 评论时间样式 */
+.comment-time {
+    margin-left: 10px; /* 与用户名间隔 */
+}
+
+/* 操作区域样式 */
+.operation {
+    display: inline-block;
+    vertical-align: middle; /* 垂直居中对齐 */
+    margin-left: 10px; /* 与评论内容间隔 */
+}
+
+.operation .layui-btn {
+    padding: 4px 10px; /* 调整按钮大小 */
+    font-size: 12px;
+    background-color: #5FB878; /* 自定义按钮背景色 */
+    color: #fff;
+    border-radius: 2px;
+}
+
+/* 字体样式 */
+body {
+    font-family: '微软雅黑', 'Arial', sans-serif;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.6; /* 行高，提升可读性 */
+}
+
+a {
+    color: #009688; /* 链接颜色 */
+    text-decoration: none;
+    transition: color 0.3s ease; /* 链接颜色变化过渡效果 */
+}
+
+a:hover {
+    color: #00796b; /* 链接悬停颜色 */
+    text-decoration: underline;
+}
+
+/* 响应式布局（可选） */
+@media (max-width: 768px) {
+    .layui-container {
+        padding: 10px;
+    }
+
+    .layui-card-header,
+    .layui-card-body {
+        padding: 5px 10px;
+    }
+}
+</style>
+<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>
+<script>
+layui.use(['layer', 'form'], function(){
+  var layer = layui.layer
+  ,form = layui.form;
+
+  // 你可以在这里添加其他的LayUI组件的初始化代码
+});
+</script>
+
 {% endblock %}

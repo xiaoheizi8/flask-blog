@@ -120,19 +120,26 @@ def myblogs(page_no=1):
     return render_template('myblogs.html', blogs=blogs, total_page=total_page, page_no=page_no)
 
 
-@app.route("/blog/myComments/1", methods=['GET', 'POST'])
-def myComments():
+@app.route("/blog/myComments/<int:page_no>", methods=['GET', 'POST'])
+def myComments(page_no=1):
     username = session.get('username')
-    # 使用 filter_by(username=username) 而不是 filter_by(User.username==username)
-    user = User.query.filter_by(username=username).first()
-    if user is None:
-        # 处理未找到用户的情况
-
+    if username is None:
         return redirect(url_for('login'))
 
-    commentList = Comment.query.filter(Comment.user_id == user.id).order_by(Comment.create_time.desc()).all()
-    return render_template('myComments.html', commentList=commentList, username=username)
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        return redirect(url_for('login'))
 
+    total_count = Comment.query.filter_by(user_id=user.id).count()
+    if total_count % 5 == 0 and total_count != 0:
+        total_page = int(total_count / 5)
+    else:
+        total_page = int(total_count / 5) + 1
+
+    commentList = Comment.query.filter(Comment.user_id == user.id).order_by(Comment.create_time.desc()).limit(5).offset(
+        (page_no - 1) * 5).all()
+
+    return render_template('myComments.html', commentList=commentList, username=username, total_page=total_page, page_no=page_no)
 
 @app.route('/deleteCom/<id>', methods=['GET', 'POST'])
 def deleteCom(id):
@@ -140,7 +147,9 @@ def deleteCom(id):
     db.session.delete(comentList)
     db.session.commit()
 
-    return redirect(url_for('myComments'))
+    # 重定向时传递 'page_no' 参数
+    return redirect(url_for('myComments', page_no=request.args.get('page_no', 1)))
+
 
 
 @app.route("/edit_blogs/<int:id>", methods=['GET', 'POST'])

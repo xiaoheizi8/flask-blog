@@ -1,0 +1,6 @@
+Flask==2.0.1
+flask_bcrypt==1.0.1
+flask_bootstrap==3.3.7.1
+Flask_Cors==4.0.0
+Flask_SQLAlchemy==2.5.1
+Werkzeug==2.0.1

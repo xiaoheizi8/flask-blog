@@ -1,22 +1,50 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container">
-    <table class="table table-striped">
-        {% for blog in blogs %}
-        <tr>
-            <td><a href="/blog/showBlog/{{blog.id}}/1">{{blog.user.username}}</a></td>
-            <td>{{ blog.user.username }}</td>
-            <td>{{ blog.title }}</td>
-            <td>{{ blog.create_time }}</td>
-            <td><a href="/blog/showBlog/{{blog.id}}/1">查看</a></td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% if page_no > 1 %}
-    <a href="/list/{{ page_no - 1 }}">上一页</a>
-    {% endif %}
-    {% if page_no < total_page %}
-    <a href="/list/{{ page_no + 1 }}">下一页</a>
-    {% endif %}
+<link href="//unpkg.com/layui@2.9.7/dist/css/layui.css" rel="stylesheet">
+<script src="//unpkg.com/layui@2.9.7/dist/layui.js"></script>
+<div class="layui-container">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <table class="layui-table" lay-skin="line">
+                <thead>
+                    <tr>
+                        <th>作者</th>
+                        <th>标题</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for blog in blogs %}
+                    <tr>
+                        <td><a href="/blog/showBlog/{{blog.id}}/1">{{blog.user.username}}</a></td>
+                        <td>{{ blog.title }}</td>
+                        <td>{{ blog.create_time }}</td>
+                        <td><a href="/blog/showBlog/{{blog.id}}/1">查看</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15" style="margin-top: 20px;">
+        <div class="layui-col-md12 text-center">
+            {% if page_no > 1 %}
+            <a class="layui-btn layui-btn-primary" href="/list/{{ page_no - 1 }}">上一页</a>
+            {% endif %}
+            {% if page_no < total_page %}
+            <a class="layui-btn layui-btn-primary" href="/list/{{ page_no + 1 }}">下一页</a>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<script>
+layui.use(['element', 'form'], function(){
+    var element = layui.element;
+    var form = layui.form;
+
+
+});
+</script>
 {% endblock %}
