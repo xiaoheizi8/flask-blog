@@ -23,12 +23,12 @@
     </div>  
     <div class="row">  
         <div class="layui-card">  
-            <div class="layui-card-header">评论</div>  
+            <div class="layui-card-header">评论</div>
             <div class="layui-card-body">  
                 <form action="/blog/comment" class="layui-form" method="post">  
                     <input type="hidden" name="blog_id" value="{{ blog.id }}">  
                     <div class="layui-form-item">  
-                        <label class="layui-form-label">评论内容</label>  
+                        <label class="layui-form-label" id="commentText" >评论内容</label>
                         <div class="layui-input-block">  
                             <textarea name="text" placeholder="请输入评论内容" class="layui-textarea"></textarea>  
                         </div>  
@@ -121,7 +121,8 @@
 </style>
 
 <script>  
-// layui.use(['form'], function(){
-//   var form = layui.form;
+
+
+
 </script>
 {% endblock %}

@@ -1,74 +1,27 @@
 from flask import Flask, render_template, request, url_for, redirect, flash, session, jsonify
-from flask_sqlalchemy import SQLAlchemy
+
 from flask_bcrypt import Bcrypt
 from werkzeug.security import generate_password_hash, check_password_hash
 import time, math
+from model.model import db,User,Comment,Blog,Type
 from flask_cors import CORS
+from model import model
 from flask_bootstrap import Bootstrap
 from functools import wraps
-
+import config
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/blog_cap'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 CORS(app)
 ctx = app.app_context()
+app.config.from_object(config)
 ctx.push()
 app.secret_key = "flaskProject4"
 bcrypt = Bcrypt()
-
-db = SQLAlchemy(app)
+#
+# db = SQLAlchemy(app)
 # 初始化Bootstrap
 bootstrap = Bootstrap(app)
-
-
-# db imformation
-# class User(db.Model):
-#     id=db.Column(db.Integer,primary_key=True)
-#     username=db.Column(db.String(80),unique=True,nullable=False)
-#     email=db.Column(db.String(120),unique=True,nullable=False)
-# 用户模型
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    password = db.Column(db.String(80), nullable=True)
-    name = db.Column(db.String(64))
-
-    def password_hash(self, password):
-        self.password = generate_password_hash(password);
-
-
-# 博客类型
-class Type(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(80))
-
-
-# 博客文章类型
-
-class Blog(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.String(128))
-    text = db.Column(db.TEXT)
-    create_time = db.Column(db.String(64))
-    # 关联关系映射
-
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship('User', backref='user')
-    type_id = db.Column(db.Integer, db.ForeignKey('type.id'))
-    type = db.relationship('Type', backref='type')
-
-
-# 博客评论类型
-class Comment(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    text = db.Column(db.String(256))  # 评论内容
-    create_time = db.Column(db.String(64))
-
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship('User', backref='user1')
-    blog_id = db.Column(db.Integer, db.ForeignKey('blog.id'))
-    blog = db.relationship('Blog', backref='blog')
-
+#init db
+db.init_app(app)
 def login_limit(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -81,7 +34,6 @@ def login_limit(func):
             return redirect(url_for('/login'))
     return wrapper
 
-# db.create_all()
 @app.route("/", methods=['POST', 'GET'])
 def index():
     return redirect('/list/1')
@@ -287,6 +239,9 @@ def comment():
     if user is None:
         # 如果没有找到用户，可以返回错误信息或者重定向到登录页面
         return "用户未找到或未登录，请先登录。", 401  # 401 表示未授权
+    if not text.strip():
+        # Return a JSON response indicating that the comment is empty
+        flash("评论不能为空")
 
     create_time = time.strftime("%Y-%m-%d %H:%M:%S")
     comment = Comment(blog_id=blog_id, text=text, create_time=create_time, user_id=user.id)
@@ -345,5 +300,7 @@ def page_not_found(e):
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True, use_reloader=True)
 
